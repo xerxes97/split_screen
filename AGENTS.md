@@ -54,6 +54,10 @@
 - Dividir tareas en tandas.
 - No iniciar siguiente tanda hasta cerrar PR de la tanda anterior.
 - PR máximo 300 líneas.
+- Todos los PR a rama `dev`.
+- Correr solo tests relacionados con lo cambiado, no toda la suite.
+- Antes de abrir PR: verificar que pasen tests nuevos y tests relacionados.
+- Antes de abrir PR: security revisa vulnerabilidades; si falla, devuelve al agente origen y no se abre PR.
 
 ### Agentes
 - back: lógica de negocio, servicios, datos.

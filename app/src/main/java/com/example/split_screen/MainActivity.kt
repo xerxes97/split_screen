@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.split_screen.Constants
+import com.example.split_screen.ui.components.StatusBanner
 import com.example.split_screen.ui.theme.Split_screenTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,17 +22,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             Split_screenTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    StatusBanner(
+                        isActive = true,
+                        modifier = Modifier.padding(innerPadding)
+                    )
                     Greeting(
-                        name = "Android",
+                        name = Constants.Greeting.DEFAULT_NAME,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
         }
+        }
     }
-}
 
-@Composable
+    @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
