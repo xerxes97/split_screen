@@ -1,6 +1,7 @@
 package com.example.split_screen
 
 import android.os.Bundle
+import com.example.split_screen.Constants
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
             Split_screenTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = Constants.Greeting.DEFAULT_NAME,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -42,6 +43,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     Split_screenTheme {
-        Greeting("Android")
+        Greeting(Constants.Greeting.DEFAULT_NAME)
     }
 }
