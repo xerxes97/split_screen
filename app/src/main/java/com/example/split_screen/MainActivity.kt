@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     private var selection by mutableStateOf(SplitSelection())
     private var installedApps by mutableStateOf<List<AppInfo>?>(null)
+    private var isServiceActive by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContent(
                         selection = selection,
+                        isServiceActive = isServiceActive,
                         appsLoaded = installedApps != null,
                         onPickTop = {
                             showPicker(selection.availableForTop(installedApps.orEmpty()), Constants.Picker.TAG_TOP)
@@ -62,6 +63,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    /** Re-consulta el servicio al volver (p. ej. desde Ajustes de accesibilidad). */
+    override fun onResume() {
+        super.onResume()
+        isServiceActive = AccessibilityHelper.isServiceActive(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -87,13 +94,12 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun MainContent(
     selection: SplitSelection,
+    isServiceActive: Boolean,
     appsLoaded: Boolean,
     onPickTop: () -> Unit,
     onPickBottom: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isServiceActive = AccessibilityHelper.isServiceActive(LocalContext.current)
-
     Column(
         modifier = modifier
             .fillMaxSize()
