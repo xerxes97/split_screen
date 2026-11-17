@@ -14,11 +14,22 @@ import com.example.split_screen.model.AppInfo
 
 class AppPickerAdapter(
     private val context: Context,
-    private val apps: List<AppInfo>,
+    private val allApps: List<AppInfo>,
     private val onAppClick: (AppInfo) -> Unit
 ) : RecyclerView.Adapter<AppPickerAdapter.AppViewHolder>() {
 
     private val pm: PackageManager = context.packageManager
+    private var filteredApps: List<AppInfo> = allApps
+
+    fun setFilter(query: String) {
+        val queryLower = query.lowercase()
+        filteredApps = if (query.isBlank()) {
+            allApps
+        } else {
+            allApps.filter { it.name.lowercase().contains(queryLower) }
+        }
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.item_app_picker, parent, false)
@@ -26,11 +37,11 @@ class AppPickerAdapter(
     }
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        val app = apps[position]
+        val app = filteredApps[position]
         holder.bind(app)
     }
 
-    override fun getItemCount(): Int = apps.size
+    override fun getItemCount(): Int = filteredApps.size
 
     inner class AppViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivIcon: ImageView = itemView.findViewById(R.id.ivAppIcon)

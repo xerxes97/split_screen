@@ -1,6 +1,8 @@
 package com.example.split_screen.ui.components
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,8 +14,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class AppPickerDialog : BottomSheetDialogFragment() {
 
-    private var apps: List<AppInfo> = emptyList()
+    private var allApps: List<AppInfo> = emptyList()
     private var onAppClickListener: ((AppInfo) -> Unit)? = null
+    private lateinit var adapter: AppPickerAdapter
 
     companion object {
         fun newInstance(apps: List<AppInfo>): AppPickerDialog {
@@ -35,7 +38,7 @@ class AppPickerDialog : BottomSheetDialogFragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             val list = it.getParcelableArrayList<AppInfo>("apps")
-            if (list != null) apps = list
+            if (list != null) allApps = list
         }
     }
 
@@ -52,10 +55,11 @@ class AppPickerDialog : BottomSheetDialogFragment() {
 
         val rvApps = view.findViewById<RecyclerView>(R.id.rvApps)
         rvApps.layoutManager = LinearLayoutManager(requireContext())
-        rvApps.adapter = AppPickerAdapter(requireContext(), apps) { appInfo ->
+        adapter = AppPickerAdapter(requireContext(), allApps) { appInfo ->
             onAppClickListener?.invoke(appInfo)
             dismiss()
         }
+        rvApps.adapter = adapter
 
         view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
             .setOnClickListener { dismiss() }
