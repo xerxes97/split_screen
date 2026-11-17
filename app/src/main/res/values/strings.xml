@@ -7,4 +7,8 @@
     <string name="picker_cancel">Cancelar</string>
     <string name="app_icon_description">Icono de la app</string>
     <string name="picker_search_hint">Buscar apps...</string>
+    <string name="selection_top_title">App Superior</string>
+    <string name="selection_bottom_title">App Inferior</string>
+    <string name="selection_none">Sin seleccionar</string>
+    <string name="selection_choose">Seleccionar app</string>
 </resources>
