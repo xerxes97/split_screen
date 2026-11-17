@@ -2,4 +2,5 @@
     <string name="app_name">split_screen</string>
     <string name="banner_status_active">Permiso de accesibilidad: ACTIVO</string>
     <string name="banner_status_inactive">Permiso de accesibilidad: INACTIVO</string>
+    <string name="banner_settings_button">Configurar accesibilidad</string>
 </resources>
