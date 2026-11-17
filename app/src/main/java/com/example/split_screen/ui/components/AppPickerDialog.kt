@@ -6,6 +6,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.core.os.bundleOf
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -65,6 +66,14 @@ class AppPickerDialog : BottomSheetDialogFragment() {
             dismiss()
         }
         rvApps.adapter = adapter
+
+        view.findViewById<EditText>(R.id.etSearch).addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) {
+                adapter.setFilter(s?.toString().orEmpty())
+            }
+        })
 
         view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
             .setOnClickListener { dismiss() }
