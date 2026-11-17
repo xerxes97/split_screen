@@ -1,5 +1,9 @@
 package com.example.split_screen.model
 
+import android.os.Bundle
+import androidx.core.os.BundleCompat
+import com.example.split_screen.Constants
+
 /**
  * Selección inmutable de las dos apps para pantalla dividida.
  *
@@ -26,4 +30,21 @@ data class SplitSelection(
     /** Apps elegibles para la posición inferior (excluye la app superior). */
     fun availableForBottom(apps: List<AppInfo>): List<AppInfo> =
         apps.filter { it.packageName != top?.packageName }
+
+    /** Guarda la selección en [bundle] para sobrevivir a rotación/muerte de proceso. */
+    fun writeTo(bundle: Bundle) {
+        bundle.putParcelable(Constants.Picker.STATE_TOP, top)
+        bundle.putParcelable(Constants.Picker.STATE_BOTTOM, bottom)
+    }
+
+    companion object {
+        /** Restaura una selección guardada con [writeTo]; vacía si [bundle] es null. */
+        fun readFrom(bundle: Bundle?): SplitSelection {
+            if (bundle == null) return SplitSelection()
+            return SplitSelection(
+                top = BundleCompat.getParcelable(bundle, Constants.Picker.STATE_TOP, AppInfo::class.java),
+                bottom = BundleCompat.getParcelable(bundle, Constants.Picker.STATE_BOTTOM, AppInfo::class.java)
+            )
+        }
+    }
 }

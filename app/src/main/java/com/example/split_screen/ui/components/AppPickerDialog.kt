@@ -6,8 +6,10 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.split_screen.Constants
 import com.example.split_screen.R
 import com.example.split_screen.model.AppInfo
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -15,7 +17,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 class AppPickerDialog : BottomSheetDialogFragment() {
 
     private var allApps: List<AppInfo> = emptyList()
-    private var onAppClickListener: ((AppInfo) -> Unit)? = null
     private lateinit var adapter: AppPickerAdapter
 
     companion object {
@@ -56,16 +57,16 @@ class AppPickerDialog : BottomSheetDialogFragment() {
         val rvApps = view.findViewById<RecyclerView>(R.id.rvApps)
         rvApps.layoutManager = LinearLayoutManager(requireContext())
         adapter = AppPickerAdapter(requireContext(), allApps) { appInfo ->
-            onAppClickListener?.invoke(appInfo)
+            // Resultado vía Fragment Result API: sobrevive a rotación/recreación.
+            // requestKey = tag del diálogo, para distinguir picker superior/inferior.
+            tag?.let { requestKey ->
+                parentFragmentManager.setFragmentResult(requestKey, bundleOf(Constants.Picker.RESULT_APP to appInfo))
+            }
             dismiss()
         }
         rvApps.adapter = adapter
 
         view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
             .setOnClickListener { dismiss() }
-    }
-
-    fun setOnAppClickListener(listener: (AppInfo) -> Unit) {
-        onAppClickListener = listener
     }
 }

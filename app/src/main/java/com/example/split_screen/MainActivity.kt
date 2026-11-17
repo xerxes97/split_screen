@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.split_screen.model.AppInfo
 import com.example.split_screen.model.SplitSelection
@@ -33,11 +34,14 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private var selection by mutableStateOf(SplitSelection())
-    private var installedApps: List<AppInfo> = emptyList()
+    private var installedApps by mutableStateOf<List<AppInfo>?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        selection = SplitSelection.readFrom(savedInstanceState)
+        registerPickerResult(Constants.Picker.TAG_TOP) { selection = selection.selectTop(it) }
+        registerPickerResult(Constants.Picker.TAG_BOTTOM) { selection = selection.selectBottom(it) }
         lifecycleScope.launch {
             installedApps = InstalledAppsProvider(applicationContext).getInstalledApps()
         }
@@ -46,8 +50,13 @@ class MainActivity : AppCompatActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContent(
                         selection = selection,
-                        onPickTop = ::showTopPicker,
-                        onPickBottom = ::showBottomPicker,
+                        appsLoaded = installedApps != null,
+                        onPickTop = {
+                            showPicker(selection.availableForTop(installedApps.orEmpty()), Constants.Picker.TAG_TOP)
+                        },
+                        onPickBottom = {
+                            showPicker(selection.availableForBottom(installedApps.orEmpty()), Constants.Picker.TAG_BOTTOM)
+                        },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -55,29 +64,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showTopPicker() {
-        showPicker(selection.availableForTop(installedApps), Constants.Picker.TAG_TOP) { app ->
-            selection = selection.selectTop(app)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        selection.writeTo(outState)
+    }
+
+    /** Escucha el resultado del picker [tag]; se re-registra tras recreación. */
+    private fun registerPickerResult(tag: String, onSelected: (AppInfo) -> Unit) {
+        supportFragmentManager.setFragmentResultListener(tag, this) { _, result ->
+            BundleCompat.getParcelable(result, Constants.Picker.RESULT_APP, AppInfo::class.java)
+                ?.let(onSelected)
         }
     }
 
-    private fun showBottomPicker() {
-        showPicker(selection.availableForBottom(installedApps), Constants.Picker.TAG_BOTTOM) { app ->
-            selection = selection.selectBottom(app)
-        }
-    }
-
-    private fun showPicker(apps: List<AppInfo>, tag: String, onSelected: (AppInfo) -> Unit) {
+    private fun showPicker(apps: List<AppInfo>, tag: String) {
+        if (supportFragmentManager.isStateSaved) return
         if (supportFragmentManager.findFragmentByTag(tag) != null) return
-        val dialog = AppPickerDialog.newInstance(apps)
-        dialog.setOnAppClickListener(onSelected)
-        dialog.show(supportFragmentManager, tag)
+        AppPickerDialog.newInstance(apps).show(supportFragmentManager, tag)
     }
 }
 
 @Composable
 fun MainContent(
     selection: SplitSelection,
+    appsLoaded: Boolean,
     onPickTop: () -> Unit,
     onPickBottom: () -> Unit,
     modifier: Modifier = Modifier
@@ -94,12 +104,14 @@ fun MainContent(
         AppSelectionCard(
             title = stringResource(R.string.selection_top_title),
             app = selection.top,
-            onClick = onPickTop
+            onClick = onPickTop,
+            enabled = appsLoaded
         )
         AppSelectionCard(
             title = stringResource(R.string.selection_bottom_title),
             app = selection.bottom,
-            onClick = onPickBottom
+            onClick = onPickBottom,
+            enabled = appsLoaded
         )
     }
 }

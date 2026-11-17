@@ -26,7 +26,8 @@ fun AppSelectionCard(
     title: String,
     app: AppInfo?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Card(modifier = modifier.fillMaxWidth()) {
         Column(
@@ -42,7 +43,7 @@ fun AppSelectionCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Button(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
                 Text(text = stringResource(R.string.selection_choose))
             }
         }

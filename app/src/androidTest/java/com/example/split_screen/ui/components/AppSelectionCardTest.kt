@@ -1,6 +1,7 @@
 package com.example.split_screen.ui.components
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,5 +51,17 @@ class AppSelectionCardTest {
         }
         composeRule.onNodeWithText(context.getString(R.string.selection_choose)).performClick()
         assertEquals(1, clicks)
+    }
+
+    @Test
+    fun disabledButtonDoesNotInvokeCallback() {
+        var clicks = 0
+        composeRule.setContent {
+            AppSelectionCard(title = "App Superior", app = null, onClick = { clicks++ }, enabled = false)
+        }
+        composeRule.onNodeWithText(context.getString(R.string.selection_choose))
+            .assertIsNotEnabled()
+            .performClick()
+        assertEquals(0, clicks)
     }
 }
