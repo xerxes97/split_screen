@@ -3,4 +3,7 @@
     <string name="banner_status_active">Permiso de accesibilidad: ACTIVO</string>
     <string name="banner_status_inactive">Permiso de accesibilidad: INACTIVO</string>
     <string name="banner_settings_button">Configurar accesibilidad</string>
+    <string name="picker_title">Seleccionar app</string>
+    <string name="picker_cancel">Cancelar</string>
+    <string name="app_icon_description">Icono de la app</string>
 </resources>
