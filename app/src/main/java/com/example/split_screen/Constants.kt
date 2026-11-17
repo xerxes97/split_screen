@@ -17,6 +17,14 @@ object Constants {
         const val SHORT_MS = 1000L
     }
 
+    object Picker {
+        const val TAG_TOP = "picker_top"
+        const val TAG_BOTTOM = "picker_bottom"
+        const val RESULT_APP = "picker_result_app"
+        const val STATE_TOP = "selection_top"
+        const val STATE_BOTTOM = "selection_bottom"
+    }
+
     object FreeTier {
         const val MAX_APPS = 2
         const val SESSION_MINUTES = 30

@@ -27,8 +27,8 @@
 ## Reglas del proyecto (obligatorias)
 
 ### Proceso
-- Antes de código: plan escrito + aprobación explícita ("aprobado"). Sin aprobación = sin cambios en archivos.
-- Dudas: preguntar siempre. No asumir. No inventar.
+- **Antes de código: plan escrito + aprobación explícita ("aprobado"). Sin aprobación = sin cambios en archivos.**
+- **Dudas: preguntar SIEMPRE al usuario. No asumir. No inventar. Si hay cualquier ambigüedad, preguntar antes de actuar.**
 
 ### Arquitectura
 - Lógica separada de UI (Compose). Componentes simples, reutilizables, una responsabilidad.
