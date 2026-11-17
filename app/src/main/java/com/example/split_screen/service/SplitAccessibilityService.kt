@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
+import com.example.split_screen.Constants
 
 /**
  * Servicio de accesibilidad neutralizado por diseño.
@@ -47,15 +48,18 @@ class SplitAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        SplitServiceHolder.attach(this)
     }
 
     override fun onUnbind(intent: android.content.Intent): Boolean {
         instance = null
+        SplitServiceHolder.detach(this)
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         instance = null
+        SplitServiceHolder.detach(this)
         super.onDestroy()
     }
 
@@ -129,7 +133,7 @@ class SplitAccessibilityService : AccessibilityService() {
         return LaunchResult.Success(
             topIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK },
             bottomIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT },
-            1500L // default, caller passes actual delayMs
+            Constants.Launch.SPLIT_DELAY_MS
         )
     }
 
@@ -151,12 +155,16 @@ class SplitAccessibilityService : AccessibilityService() {
      * @param delayMs   Milisegundos de espera entre lanzar la app superior y
      *                  hacer el toggle split-screen (para que la app cargue).
      *
-     * @return [LaunchResult.Success] con los intents ejecutados, o [LaunchResult.Failure] si falla validación.
-     * @throws IllegalStateException si el servicio no está conectado.
+     * @return [LaunchResult.Success] con los intents ejecutados, o [LaunchResult.Failure]
+     *         si falla validación o el servicio no está conectado.
      */
-    fun launchSplitScreen(topPkg: String, bottomPkg: String, delayMs: Long = 1500): LaunchResult {
+    fun launchSplitScreen(
+        topPkg: String,
+        bottomPkg: String,
+        delayMs: Long = Constants.Launch.SPLIT_DELAY_MS
+    ): LaunchResult {
         if (instance == null) {
-            throw IllegalStateException("AccessibilityService no está conectado")
+            return LaunchResult.Failure(LaunchResult.LaunchError.SERVICE_NOT_CONNECTED)
         }
 
         // Validación defensiva antes de ejecutar

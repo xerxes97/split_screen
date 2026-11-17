@@ -25,6 +25,11 @@ object Constants {
         const val STATE_BOTTOM = "selection_bottom"
     }
 
+    object Launch {
+        /** Espera entre abrir la app superior y activar split-screen. */
+        const val SPLIT_DELAY_MS = 1500L
+    }
+
     object FreeTier {
         const val MAX_APPS = 2
         const val SESSION_MINUTES = 30

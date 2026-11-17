@@ -1,6 +1,7 @@
 package com.example.split_screen
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -21,10 +22,15 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.split_screen.model.AppInfo
+import com.example.split_screen.model.LaunchPolicy
 import com.example.split_screen.model.SplitSelection
 import com.example.split_screen.provider.InstalledAppsProvider
+import com.example.split_screen.service.SplitAccessibilityService.LaunchResult
+import com.example.split_screen.service.SplitServiceHolder
+import com.example.split_screen.ui.messageRes
 import com.example.split_screen.ui.components.AppPickerDialog
 import com.example.split_screen.ui.components.AppSelectionCard
+import com.example.split_screen.ui.components.LaunchButton
 import com.example.split_screen.ui.components.StatusBanner
 import com.example.split_screen.ui.theme.Split_screenTheme
 import com.example.split_screen.util.AccessibilityHelper
@@ -58,6 +64,7 @@ class MainActivity : AppCompatActivity() {
                         onPickBottom = {
                             showPicker(selection.availableForBottom(installedApps.orEmpty()), Constants.Picker.TAG_BOTTOM)
                         },
+                        onLaunch = ::launchSplit,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -84,6 +91,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun launchSplit() {
+        val top = selection.top ?: return
+        val bottom = selection.bottom ?: return
+        val result = SplitServiceHolder.current()?.launchSplitScreen(top.packageName, bottom.packageName)
+            ?: LaunchResult.Failure(LaunchResult.LaunchError.SERVICE_NOT_CONNECTED)
+        if (result is LaunchResult.Failure) {
+            Toast.makeText(this, result.error.messageRes(), Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun showPicker(apps: List<AppInfo>, tag: String) {
         if (supportFragmentManager.isStateSaved) return
         if (supportFragmentManager.findFragmentByTag(tag) != null) return
@@ -98,6 +115,7 @@ fun MainContent(
     appsLoaded: Boolean,
     onPickTop: () -> Unit,
     onPickBottom: () -> Unit,
+    onLaunch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -118,6 +136,10 @@ fun MainContent(
             app = selection.bottom,
             onClick = onPickBottom,
             enabled = appsLoaded
+        )
+        LaunchButton(
+            enabled = LaunchPolicy.canLaunch(selection, isServiceActive),
+            onClick = onLaunch
         )
     }
 }
