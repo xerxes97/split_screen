@@ -25,6 +25,11 @@ object Constants {
         const val STATE_BOTTOM = "selection_bottom"
     }
 
+    object Launch {
+        /** Espera entre abrir la app inferior (al lado) y la superior. */
+        const val SPLIT_DELAY_MS = 1000L
+    }
+
     object FreeTier {
         const val MAX_APPS = 2
         const val SESSION_MINUTES = 30

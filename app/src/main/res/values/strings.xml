@@ -1,8 +1,5 @@
 <resources>
     <string name="app_name">split_screen</string>
-    <string name="banner_status_active">Permiso de accesibilidad: ACTIVO</string>
-    <string name="banner_status_inactive">Permiso de accesibilidad: INACTIVO</string>
-    <string name="banner_settings_button">Configurar accesibilidad</string>
     <string name="picker_title">Seleccionar app</string>
     <string name="picker_cancel">Cancelar</string>
     <string name="app_icon_description">Icono de la app</string>
@@ -11,4 +8,9 @@
     <string name="selection_bottom_title">App Inferior</string>
     <string name="selection_none">Sin seleccionar</string>
     <string name="selection_choose">Seleccionar app</string>
+    <string name="launch_button">Iniciar pantalla dividida</string>
+    <string name="launch_error_top_not_found">La app superior ya no está instalada</string>
+    <string name="launch_error_top_not_launchable">La app superior no se puede abrir</string>
+    <string name="launch_error_bottom_not_found">La app inferior ya no está instalada</string>
+    <string name="launch_error_bottom_not_launchable">La app inferior no se puede abrir</string>
 </resources>
