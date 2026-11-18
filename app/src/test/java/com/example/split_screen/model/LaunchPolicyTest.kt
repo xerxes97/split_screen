@@ -8,30 +8,24 @@ class LaunchPolicyTest {
 
     private val top = AppInfo(name = "Chrome", packageName = "com.android.chrome")
     private val bottom = AppInfo(name = "WhatsApp", packageName = "com.whatsapp")
-    private val full = SplitSelection(top = top, bottom = bottom)
 
     @Test
-    fun bothAppsAndServiceActiveAllowsLaunch() {
-        assertTrue(LaunchPolicy.canLaunch(full, serviceActive = true))
-    }
-
-    @Test
-    fun serviceInactiveBlocksLaunch() {
-        assertFalse(LaunchPolicy.canLaunch(full, serviceActive = false))
+    fun bothAppsAllowLaunch() {
+        assertTrue(LaunchPolicy.canLaunch(SplitSelection(top = top, bottom = bottom)))
     }
 
     @Test
     fun missingTopBlocksLaunch() {
-        assertFalse(LaunchPolicy.canLaunch(SplitSelection(bottom = bottom), serviceActive = true))
+        assertFalse(LaunchPolicy.canLaunch(SplitSelection(bottom = bottom)))
     }
 
     @Test
     fun missingBottomBlocksLaunch() {
-        assertFalse(LaunchPolicy.canLaunch(SplitSelection(top = top), serviceActive = true))
+        assertFalse(LaunchPolicy.canLaunch(SplitSelection(top = top)))
     }
 
     @Test
     fun emptySelectionBlocksLaunch() {
-        assertFalse(LaunchPolicy.canLaunch(SplitSelection(), serviceActive = true))
+        assertFalse(LaunchPolicy.canLaunch(SplitSelection()))
     }
 }

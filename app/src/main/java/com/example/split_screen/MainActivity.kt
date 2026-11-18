@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -21,26 +20,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.split_screen.launcher.PlanResult
+import com.example.split_screen.launcher.SplitLauncher
 import com.example.split_screen.model.AppInfo
 import com.example.split_screen.model.LaunchPolicy
 import com.example.split_screen.model.SplitSelection
 import com.example.split_screen.provider.InstalledAppsProvider
-import com.example.split_screen.service.SplitAccessibilityService.LaunchResult
-import com.example.split_screen.service.SplitServiceHolder
 import com.example.split_screen.ui.messageRes
 import com.example.split_screen.ui.components.AppPickerDialog
 import com.example.split_screen.ui.components.AppSelectionCard
 import com.example.split_screen.ui.components.LaunchButton
-import com.example.split_screen.ui.components.StatusBanner
 import com.example.split_screen.ui.theme.Split_screenTheme
-import com.example.split_screen.util.AccessibilityHelper
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private var selection by mutableStateOf(SplitSelection())
     private var installedApps by mutableStateOf<List<AppInfo>?>(null)
-    private var isServiceActive by mutableStateOf(false)
+    private val splitLauncher by lazy { SplitLauncher(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +53,6 @@ class MainActivity : AppCompatActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContent(
                         selection = selection,
-                        isServiceActive = isServiceActive,
                         appsLoaded = installedApps != null,
                         onPickTop = {
                             showPicker(selection.availableForTop(installedApps.orEmpty()), Constants.Picker.TAG_TOP)
@@ -72,10 +68,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Re-consulta el servicio al volver (p. ej. desde Ajustes de accesibilidad). */
-    override fun onResume() {
-        super.onResume()
-        isServiceActive = AccessibilityHelper.isServiceActive(this)
+    override fun onDestroy() {
+        splitLauncher.cancel()
+        super.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -94,9 +89,8 @@ class MainActivity : AppCompatActivity() {
     private fun launchSplit() {
         val top = selection.top ?: return
         val bottom = selection.bottom ?: return
-        val result = SplitServiceHolder.current()?.launchSplitScreen(top.packageName, bottom.packageName)
-            ?: LaunchResult.Failure(LaunchResult.LaunchError.SERVICE_NOT_CONNECTED)
-        if (result is LaunchResult.Failure) {
+        val result = splitLauncher.launch(top.packageName, bottom.packageName)
+        if (result is PlanResult.Failure) {
             Toast.makeText(this, result.error.messageRes(), Toast.LENGTH_LONG).show()
         }
     }
@@ -111,7 +105,6 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun MainContent(
     selection: SplitSelection,
-    isServiceActive: Boolean,
     appsLoaded: Boolean,
     onPickTop: () -> Unit,
     onPickBottom: () -> Unit,
@@ -124,7 +117,6 @@ fun MainContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        StatusBanner(isActive = isServiceActive, modifier = Modifier.fillMaxWidth())
         AppSelectionCard(
             title = stringResource(R.string.selection_top_title),
             app = selection.top,
@@ -138,7 +130,7 @@ fun MainContent(
             enabled = appsLoaded
         )
         LaunchButton(
-            enabled = LaunchPolicy.canLaunch(selection, isServiceActive),
+            enabled = LaunchPolicy.canLaunch(selection),
             onClick = onLaunch
         )
     }

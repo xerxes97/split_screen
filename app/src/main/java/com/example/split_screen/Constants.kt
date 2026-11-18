@@ -26,8 +26,8 @@ object Constants {
     }
 
     object Launch {
-        /** Espera entre abrir la app superior y activar split-screen. */
-        const val SPLIT_DELAY_MS = 1500L
+        /** Espera entre abrir la app inferior (al lado) y la superior. */
+        const val SPLIT_DELAY_MS = 1000L
     }
 
     object FreeTier {
