@@ -23,8 +23,9 @@ class ProStatusStorageManager(
 
     override val isProUser: Flow<Boolean> = dataStore.data
         .catch { error ->
-            // Fail closed: any read error means free tier. Never swallow cancellation.
-            if (error is CancellationException) throw error
+            // Fail closed: any read error means free tier. Never swallow
+            // cancellation or fatal VM errors (OutOfMemoryError etc.).
+            if (error is CancellationException || error is Error) throw error
             emit(emptyPreferences())
         }
         .map { prefs -> prefs[key] ?: Constants.ProStatus.DEFAULT_IS_PRO_USER }

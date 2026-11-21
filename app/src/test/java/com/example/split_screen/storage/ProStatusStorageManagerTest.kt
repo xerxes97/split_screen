@@ -13,9 +13,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * JVM tests for [ProStatusStorageManager] using an in-memory DataStore.
@@ -37,7 +39,7 @@ class ProStatusStorageManagerTest {
     }
 
     private class UnreadableDataStore(
-        private val error: Exception = IOException("corrupt"),
+        private val error: Throwable = IOException("corrupt"),
     ) : DataStore<Preferences> {
         override val data: Flow<Preferences> = flow { throw error }
         override suspend fun updateData(
@@ -77,5 +79,21 @@ class ProStatusStorageManagerTest {
     fun unexpectedErrorFallsBackToFalse() = runBlocking {
         val storage = ProStatusStorageManager(UnreadableDataStore(IllegalStateException("boom")))
         assertFalse(storage.isProUser.first())
+    }
+
+    @Test
+    fun cancellationIsRethrown() {
+        val storage = ProStatusStorageManager(UnreadableDataStore(CancellationException("stop")))
+        assertThrows(CancellationException::class.java) {
+            runBlocking { storage.isProUser.first() }
+        }
+    }
+
+    @Test
+    fun fatalErrorIsRethrown() {
+        val storage = ProStatusStorageManager(UnreadableDataStore(StackOverflowError()))
+        assertThrows(StackOverflowError::class.java) {
+            runBlocking { storage.isProUser.first() }
+        }
     }
 }
