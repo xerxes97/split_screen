@@ -34,4 +34,10 @@ object Constants {
         const val MAX_APPS = 2
         const val SESSION_MINUTES = 30
     }
+
+    object ProStatus {
+        const val DATASTORE_NAME = "pro_status"
+        const val KEY_IS_PRO_USER = "is_pro_user"
+        const val DEFAULT_IS_PRO_USER = false
+    }
 }
