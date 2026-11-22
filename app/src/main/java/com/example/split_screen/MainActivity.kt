@@ -20,12 +20,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.split_screen.billing.PlayBillingGateway
+import com.example.split_screen.billing.ProStatusSyncer
 import com.example.split_screen.launcher.PlanResult
 import com.example.split_screen.launcher.SplitLauncher
 import com.example.split_screen.model.AppInfo
 import com.example.split_screen.model.LaunchPolicy
 import com.example.split_screen.model.SplitSelection
 import com.example.split_screen.provider.InstalledAppsProvider
+import com.example.split_screen.storage.ProStatusStorageManager
+import com.example.split_screen.storage.proStatusDataStore
 import com.example.split_screen.ui.messageRes
 import com.example.split_screen.ui.components.AppPickerDialog
 import com.example.split_screen.ui.components.AppSelectionCard
@@ -38,6 +42,20 @@ class MainActivity : AppCompatActivity() {
     private var selection by mutableStateOf(SplitSelection())
     private var installedApps by mutableStateOf<List<AppInfo>?>(null)
     private val splitLauncher by lazy { SplitLauncher(this) }
+    private val billingGateway by lazy { PlayBillingGateway(this, onPurchasesUpdated = ::syncProStatus) }
+    private val proStatusSyncer by lazy {
+        ProStatusSyncer(billingGateway, ProStatusStorageManager(applicationContext.proStatusDataStore))
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncProStatus()
+    }
+
+    /** Google Play Billing is the source of truth; refresh the cache on every resume. */
+    private fun syncProStatus() {
+        lifecycleScope.launch { proStatusSyncer.sync() }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +88,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         splitLauncher.cancel()
+        billingGateway.close()
         super.onDestroy()
     }
 
