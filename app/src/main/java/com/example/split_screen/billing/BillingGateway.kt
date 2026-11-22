@@ -18,9 +18,15 @@ sealed interface PurchaseQueryResult {
     data object Failure : PurchaseQueryResult
 }
 
+/** Purchasable Pro product as shown to the user. */
+data class ProProduct(val formattedPrice: String)
+
 /** Abstraction over Google Play Billing. */
 interface BillingGateway {
     suspend fun queryOneTimePurchases(): PurchaseQueryResult
+
+    /** @return the product, or null if it does not exist in Play Console or Play is unreachable. */
+    suspend fun queryProProduct(productId: String): ProProduct?
 
     /** @return true when Google confirmed the acknowledgement. */
     suspend fun acknowledge(token: String): Boolean

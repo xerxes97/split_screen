@@ -1,14 +1,19 @@
 package com.example.split_screen.billing
 
+import android.app.Activity
 import android.content.Context
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.PendingPurchasesParams
+import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.acknowledgePurchase
+import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -43,6 +48,41 @@ class PlayBillingGateway(
         if (!connect()) return false
         val params = AcknowledgePurchaseParams.newBuilder().setPurchaseToken(token).build()
         return client.acknowledgePurchase(params).responseCode == BillingClient.BillingResponseCode.OK
+    }
+
+    // Last product fetched; required by launchBillingFlow.
+    @Volatile
+    private var proDetails: ProductDetails? = null
+
+    override suspend fun queryProProduct(productId: String): ProProduct? {
+        if (!connect()) return null
+        val product = QueryProductDetailsParams.Product.newBuilder()
+            .setProductId(productId)
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+        val params = QueryProductDetailsParams.newBuilder().setProductList(listOf(product)).build()
+        val result = client.queryProductDetails(params)
+        if (result.billingResult.responseCode != BillingClient.BillingResponseCode.OK) return null
+        val details = result.productDetailsList?.firstOrNull { it.productId == productId } ?: return null
+        val price = details.oneTimePurchaseOfferDetailsList?.firstOrNull()?.formattedPrice ?: return null
+        proDetails = details
+        return ProProduct(price)
+    }
+
+    /**
+     * Opens Google's purchase screen. The outcome arrives through the
+     * purchases listener, which triggers a sync.
+     * @return false if the product was not loaded or Play refused to open.
+     */
+    fun launchPurchase(activity: Activity): Boolean {
+        val details = proDetails ?: return false
+        val offerToken = details.oneTimePurchaseOfferDetailsList?.firstOrNull()?.offerToken
+        val productParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+            .setProductDetails(details)
+            .apply { offerToken?.let { setOfferToken(it) } }
+            .build()
+        val params = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(productParams)).build()
+        return client.launchBillingFlow(activity, params).responseCode == BillingClient.BillingResponseCode.OK
     }
 
     fun close() = client.endConnection()

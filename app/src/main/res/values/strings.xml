@@ -13,4 +13,8 @@
     <string name="launch_error_top_not_launchable">La app superior no se puede abrir</string>
     <string name="launch_error_bottom_not_found">La app inferior ya no está instalada</string>
     <string name="launch_error_bottom_not_launchable">La app inferior no se puede abrir</string>
+    <string name="pro_buy">Hazte Pro – %1$s</string>
+    <string name="pro_active">Pro activo</string>
+    <string name="pro_unavailable">Pro no disponible</string>
+    <string name="pro_billing_error">No se pudo conectar con Google Play</string>
 </resources>

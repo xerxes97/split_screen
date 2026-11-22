@@ -29,6 +29,7 @@ class ProStatusSyncerTest {
     ) : BillingGateway {
         val acknowledged = mutableListOf<String>()
         override suspend fun queryOneTimePurchases() = result
+        override suspend fun queryProProduct(productId: String): ProProduct? = null
         override suspend fun acknowledge(token: String): Boolean {
             acknowledged += token
             return ackSucceeds
@@ -114,6 +115,7 @@ class ProStatusSyncerTest {
                 return PurchaseQueryResult.Success(emptyList())
             }
             override suspend fun acknowledge(token: String) = true
+            override suspend fun queryProProduct(productId: String): ProProduct? = null
         }
         val syncer = ProStatusSyncer(gateway, storage, productId)
         val first = launch { syncer.sync() }
