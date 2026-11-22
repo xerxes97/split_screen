@@ -40,10 +40,4 @@ object Constants {
         const val KEY_IS_PRO_USER = "is_pro_user"
         const val DEFAULT_IS_PRO_USER = false
     }
-
-    object Billing {
-        // TODO(deuda): placeholder. Must match the one-time product ID created
-        // in Play Console. See .progress/deuda.md (Tarea 7.1).
-        const val PRODUCT_ID_PRO = "pro_lifetime"
-    }
 }

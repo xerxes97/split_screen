@@ -28,6 +28,12 @@ android {
 
         buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL", "")}\"")
         buildConfigField("String", "API_KEY", "\"${localProperties.getProperty("API_KEY", "")}\"")
+        // Play product ID: empty (Pro unavailable) or lowercase letters, digits, '_' and '.'.
+        val proProductId = localProperties.getProperty("PRO_PRODUCT_ID", "").trim()
+        if (proProductId.isNotEmpty() && !Regex("^[a-z0-9][a-z0-9_.]*$").matches(proProductId)) {
+            throw GradleException("Invalid PRO_PRODUCT_ID in local.properties: '$proProductId'")
+        }
+        buildConfigField("String", "PRO_PRODUCT_ID", "\"$proProductId\"")
     }
 
     buildTypes {

@@ -3,6 +3,7 @@ package com.example.split_screen.ui.components
 import android.content.Context
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -41,9 +42,16 @@ class ProCardTest {
     }
 
     @Test
-    fun proShowsIndicatorWithoutBuy() {
+    fun proShowsOnlyCrownWithoutBuy() {
         show(ProUiState.Pro)
-        compose.onNodeWithText(context.getString(R.string.pro_active)).assertExists()
+        compose.onNodeWithContentDescription(context.getString(R.string.pro_crown_description)).assertExists()
         compose.onNodeWithText(context.getString(R.string.pro_unavailable)).assertDoesNotExist()
+        compose.onNodeWithText(context.getString(R.string.pro_buy, "US$ 2.99")).assertDoesNotExist()
+    }
+
+    @Test
+    fun freeDoesNotShowProCrown() {
+        show(ProUiState.Free("US$ 2.99"))
+        compose.onNodeWithContentDescription(context.getString(R.string.pro_crown_description)).assertDoesNotExist()
     }
 }

@@ -48,6 +48,13 @@ class ProStatusSyncerTest {
     }
 
     @Test
+    fun blankProductIdNeverRevokesPro() = runBlocking {
+        val storage = FakeStorage(initial = true)
+        ProStatusSyncer(FakeGateway(PurchaseQueryResult.Success(emptyList())), storage, productId = "").sync()
+        assertTrue(storage.state.value)
+    }
+
+    @Test
     fun purchasedGrantsPro() {
         val storage = FakeStorage(initial = false)
         sync(FakeGateway(PurchaseQueryResult.Success(listOf(purchase()))), storage)

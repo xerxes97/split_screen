@@ -22,7 +22,7 @@ import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.split_screen.billing.PlayBillingGateway
+import com.example.split_screen.billing.BillingManager
 import com.example.split_screen.billing.ProProduct
 import com.example.split_screen.billing.ProStatusSyncer
 import com.example.split_screen.billing.ProUiState
@@ -47,9 +47,9 @@ class MainActivity : AppCompatActivity() {
     private var selection by mutableStateOf(SplitSelection())
     private var installedApps by mutableStateOf<List<AppInfo>?>(null)
     private val splitLauncher by lazy { SplitLauncher(this) }
-    private val billingGateway by lazy { PlayBillingGateway(this, onPurchasesUpdated = ::syncProStatus) }
+    private val billingManager by lazy { BillingManager(this, onPurchasesUpdated = ::syncProStatus) }
     private val proStatusStorage by lazy { ProStatusStorageManager(applicationContext.proStatusDataStore) }
-    private val proStatusSyncer by lazy { ProStatusSyncer(billingGateway, proStatusStorage) }
+    private val proStatusSyncer by lazy { ProStatusSyncer(billingManager, proStatusStorage) }
     private var isPro by mutableStateOf(false)
     private var proProduct by mutableStateOf<ProProduct?>(null)
 
@@ -65,11 +65,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadProProduct() {
-        lifecycleScope.launch { proProduct = billingGateway.queryProProduct(Constants.Billing.PRODUCT_ID_PRO) }
+        lifecycleScope.launch { proProduct = billingManager.queryProProduct(BuildConfig.PRO_PRODUCT_ID) }
     }
 
     private fun buyPro() {
-        if (!billingGateway.launchPurchase(this)) {
+        if (!billingManager.launchPurchaseFlow(this)) {
             Toast.makeText(this, R.string.pro_billing_error, Toast.LENGTH_LONG).show()
         }
     }
@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         splitLauncher.cancel()
-        billingGateway.close()
+        billingManager.close()
         super.onDestroy()
     }
 
