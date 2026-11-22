@@ -20,7 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.annotation.StringRes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.split_screen.billing.PlayBillingGateway
@@ -70,21 +69,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buyPro() {
-        if (!billingGateway.launchPurchase(this)) toast(R.string.pro_billing_error)
-    }
-
-    private fun restorePurchase() {
-        lifecycleScope.launch {
-            val message = when (proStatusSyncer.sync()) {
-                true -> R.string.pro_restore_found
-                false -> R.string.pro_restore_not_found
-                null -> R.string.pro_billing_error
-            }
-            toast(message)
+        if (!billingGateway.launchPurchase(this)) {
+            Toast.makeText(this, R.string.pro_billing_error, Toast.LENGTH_LONG).show()
         }
     }
-
-    private fun toast(@StringRes message: Int) = Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,7 +92,6 @@ class MainActivity : AppCompatActivity() {
                     MainContent(
                         proState = ProUiState.from(isPro, proProduct),
                         onBuyPro = ::buyPro,
-                        onRestorePurchase = ::restorePurchase,
                         selection = selection,
                         appsLoaded = installedApps != null,
                         onPickTop = {
@@ -160,7 +147,6 @@ class MainActivity : AppCompatActivity() {
 fun MainContent(
     proState: ProUiState,
     onBuyPro: () -> Unit,
-    onRestorePurchase: () -> Unit,
     selection: SplitSelection,
     appsLoaded: Boolean,
     onPickTop: () -> Unit,
@@ -174,7 +160,7 @@ fun MainContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ProCard(state = proState, onBuy = onBuyPro, onRestore = onRestorePurchase)
+        ProCard(state = proState, onBuy = onBuyPro)
         AppSelectionCard(
             title = stringResource(R.string.selection_top_title),
             app = selection.top,

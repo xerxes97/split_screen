@@ -22,33 +22,28 @@ class ProCardTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
     private var buys = 0
-    private var restores = 0
 
     private fun show(state: ProUiState) = compose.setContent {
-        ProCard(state = state, onBuy = { buys++ }, onRestore = { restores++ })
+        ProCard(state = state, onBuy = { buys++ })
     }
 
     @Test
-    fun freeShowsPriceAndBothActionsWork() {
+    fun freeShowsPriceAndBuyWorks() {
         show(ProUiState.Free("US$ 2.99"))
         compose.onNodeWithText(context.getString(R.string.pro_buy, "US$ 2.99")).performClick()
-        compose.onNodeWithText(context.getString(R.string.pro_restore)).performClick()
         assertEquals(1, buys)
-        assertEquals(1, restores)
     }
 
     @Test
-    fun unavailableDisablesBuyButKeepsRestore() {
+    fun unavailableDisablesBuy() {
         show(ProUiState.Unavailable)
         compose.onNodeWithText(context.getString(R.string.pro_unavailable)).assertIsNotEnabled()
-        compose.onNodeWithText(context.getString(R.string.pro_restore)).performClick()
-        assertEquals(1, restores)
     }
 
     @Test
-    fun proShowsIndicatorWithoutActions() {
+    fun proShowsIndicatorWithoutBuy() {
         show(ProUiState.Pro)
         compose.onNodeWithText(context.getString(R.string.pro_active)).assertExists()
-        compose.onNodeWithText(context.getString(R.string.pro_restore)).assertDoesNotExist()
+        compose.onNodeWithText(context.getString(R.string.pro_unavailable)).assertDoesNotExist()
     }
 }

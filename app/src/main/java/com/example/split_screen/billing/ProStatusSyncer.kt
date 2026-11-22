@@ -19,12 +19,10 @@ class ProStatusSyncer(
     // Serializes query + write so a stale answer can never overwrite a newer one.
     private val mutex = Mutex()
 
-    /** @return Google's verdict (true = Pro owned), or null when Play gave no reliable answer. */
-    suspend fun sync(): Boolean? = mutex.withLock {
+    suspend fun sync() = mutex.withLock {
         val decision = ProPurchaseEvaluator.evaluate(gateway.queryOneTimePurchases(), productId)
         decision.isPro?.let { storage.setProUser(it) }
         // Failed acknowledgements are retried on the next sync.
         decision.tokensToAcknowledge.forEach { gateway.acknowledge(it) }
-        decision.isPro
     }
 }

@@ -55,16 +55,6 @@ class ProStatusSyncerTest {
     }
 
     @Test
-    fun syncReturnsGoogleVerdictForRestore() {
-        val owned = FakeGateway(PurchaseQueryResult.Success(listOf(purchase())))
-        val none = FakeGateway(PurchaseQueryResult.Success(emptyList()))
-        val failure = FakeGateway(PurchaseQueryResult.Failure)
-        assertEquals(true, sync(owned, FakeStorage(initial = false)))
-        assertEquals(false, sync(none, FakeStorage(initial = true)))
-        assertEquals(null, sync(failure, FakeStorage(initial = true)))
-    }
-
-    @Test
     fun noPurchaseRevokesTamperedLocalTrue() {
         val storage = FakeStorage(initial = true)
         sync(FakeGateway(PurchaseQueryResult.Success(emptyList())), storage)
