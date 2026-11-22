@@ -1,6 +1,6 @@
 package com.example.split_screen.billing
 
-import com.example.split_screen.Constants
+import com.example.split_screen.BuildConfig
 import com.example.split_screen.storage.ProStatusStorage
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,13 +13,15 @@ import kotlinx.coroutines.sync.withLock
 class ProStatusSyncer(
     private val gateway: BillingGateway,
     private val storage: ProStatusStorage,
-    private val productId: String = Constants.Billing.PRODUCT_ID_PRO,
+    private val productId: String = BuildConfig.PRO_PRODUCT_ID,
 ) {
 
     // Serializes query + write so a stale answer can never overwrite a newer one.
     private val mutex = Mutex()
 
-    suspend fun sync() = mutex.withLock {
+    suspend fun sync(): Unit = mutex.withLock {
+        // Missing PRO_PRODUCT_ID in local.properties: never revoke a paid Pro by misconfiguration.
+        if (productId.isBlank()) return@withLock
         val decision = ProPurchaseEvaluator.evaluate(gateway.queryOneTimePurchases(), productId)
         decision.isPro?.let { storage.setProUser(it) }
         // Failed acknowledgements are retried on the next sync.

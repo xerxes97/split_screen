@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 /** [BillingGateway] backed by Google Play Billing. Call [close] when done. */
-class PlayBillingGateway(
+class BillingManager(
     context: Context,
     onPurchasesUpdated: () -> Unit,
 ) : BillingGateway {
@@ -55,7 +55,7 @@ class PlayBillingGateway(
     private var proDetails: ProductDetails? = null
 
     override suspend fun queryProProduct(productId: String): ProProduct? {
-        if (!connect()) return null
+        if (productId.isBlank() || !connect()) return null
         val product = QueryProductDetailsParams.Product.newBuilder()
             .setProductId(productId)
             .setProductType(BillingClient.ProductType.INAPP)
@@ -74,7 +74,7 @@ class PlayBillingGateway(
      * purchases listener, which triggers a sync.
      * @return false if the product was not loaded or Play refused to open.
      */
-    fun launchPurchase(activity: Activity): Boolean {
+    fun launchPurchaseFlow(activity: Activity): Boolean {
         val details = proDetails ?: return false
         val offerToken = details.oneTimePurchaseOfferDetailsList?.firstOrNull()?.offerToken
         val productParams = BillingFlowParams.ProductDetailsParams.newBuilder()

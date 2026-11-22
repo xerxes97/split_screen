@@ -1,27 +1,31 @@
 package com.example.split_screen.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.split_screen.R
 import com.example.split_screen.billing.ProUiState
+import com.example.split_screen.ui.theme.ProCrownInactive
+import com.example.split_screen.ui.theme.ProGold
 import com.example.split_screen.ui.theme.Split_screenTheme
 
 /**
- * Tarjeta Pro: botón de compra o indicador de Pro activo.
+ * Pro area: gold crown in the top-right corner when the user owns Pro,
+ * otherwise the "remove ads" purchase button with a gray crown.
  *
- * Solo muestra [state] y emite [onBuy]; no conoce Billing. La compra previa
- * se recupera sola al sincronizar con Google Play en cada inicio.
+ * Only renders [state] and emits [onBuy]; knows nothing about Billing.
  */
 @Composable
 fun ProCard(
@@ -29,26 +33,43 @@ fun ProCard(
     onBuy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            when (state) {
-                ProUiState.Pro -> Text(
-                    text = stringResource(R.string.pro_active),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                is ProUiState.Free -> Button(onClick = onBuy, modifier = Modifier.fillMaxWidth()) {
-                    Text(text = stringResource(R.string.pro_buy, state.formattedPrice))
-                }
-                ProUiState.Unavailable -> Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
-                    Text(text = stringResource(R.string.pro_unavailable))
-                }
-            }
+    when (state) {
+        ProUiState.Pro -> Box(modifier = modifier.fillMaxWidth()) {
+            Icon(
+                painter = painterResource(R.drawable.ic_crown),
+                contentDescription = stringResource(R.string.pro_crown_description),
+                tint = ProGold,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(32.dp),
+            )
         }
+        is ProUiState.Free -> RemoveAdsButton(
+            text = stringResource(R.string.pro_buy, state.formattedPrice),
+            enabled = true,
+            onClick = onBuy,
+            modifier = modifier,
+        )
+        ProUiState.Unavailable -> RemoveAdsButton(
+            text = stringResource(R.string.pro_unavailable),
+            enabled = false,
+            onClick = {},
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun RemoveAdsButton(text: String, enabled: Boolean, onClick: () -> Unit, modifier: Modifier) {
+    Button(onClick = onClick, enabled = enabled, modifier = modifier.fillMaxWidth()) {
+        Icon(
+            painter = painterResource(R.drawable.ic_crown),
+            contentDescription = null,
+            tint = ProCrownInactive,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text)
     }
 }
 
