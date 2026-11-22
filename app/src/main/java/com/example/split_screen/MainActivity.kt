@@ -20,8 +20,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.BundleCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.annotation.StringRes
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.split_screen.billing.PlayBillingGateway
+import com.example.split_screen.billing.ProProduct
 import com.example.split_screen.billing.ProStatusSyncer
+import com.example.split_screen.billing.ProUiState
+import com.example.split_screen.ui.components.ProCard
 import com.example.split_screen.launcher.PlanResult
 import com.example.split_screen.launcher.SplitLauncher
 import com.example.split_screen.model.AppInfo
@@ -43,19 +49,42 @@ class MainActivity : AppCompatActivity() {
     private var installedApps by mutableStateOf<List<AppInfo>?>(null)
     private val splitLauncher by lazy { SplitLauncher(this) }
     private val billingGateway by lazy { PlayBillingGateway(this, onPurchasesUpdated = ::syncProStatus) }
-    private val proStatusSyncer by lazy {
-        ProStatusSyncer(billingGateway, ProStatusStorageManager(applicationContext.proStatusDataStore))
-    }
+    private val proStatusStorage by lazy { ProStatusStorageManager(applicationContext.proStatusDataStore) }
+    private val proStatusSyncer by lazy { ProStatusSyncer(billingGateway, proStatusStorage) }
+    private var isPro by mutableStateOf(false)
+    private var proProduct by mutableStateOf<ProProduct?>(null)
 
     override fun onResume() {
         super.onResume()
         syncProStatus()
+        if (proProduct == null) loadProProduct()
     }
 
     /** Google Play Billing is the source of truth; refresh the cache on every resume. */
     private fun syncProStatus() {
         lifecycleScope.launch { proStatusSyncer.sync() }
     }
+
+    private fun loadProProduct() {
+        lifecycleScope.launch { proProduct = billingGateway.queryProProduct(Constants.Billing.PRODUCT_ID_PRO) }
+    }
+
+    private fun buyPro() {
+        if (!billingGateway.launchPurchase(this)) toast(R.string.pro_billing_error)
+    }
+
+    private fun restorePurchase() {
+        lifecycleScope.launch {
+            val message = when (proStatusSyncer.sync()) {
+                true -> R.string.pro_restore_found
+                false -> R.string.pro_restore_not_found
+                null -> R.string.pro_billing_error
+            }
+            toast(message)
+        }
+    }
+
+    private fun toast(@StringRes message: Int) = Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +95,16 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             installedApps = InstalledAppsProvider(applicationContext).getInstalledApps()
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) { proStatusStorage.isProUser.collect { isPro = it } }
+        }
         setContent {
             Split_screenTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContent(
+                        proState = ProUiState.from(isPro, proProduct),
+                        onBuyPro = ::buyPro,
+                        onRestorePurchase = ::restorePurchase,
                         selection = selection,
                         appsLoaded = installedApps != null,
                         onPickTop = {
@@ -123,6 +158,9 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun MainContent(
+    proState: ProUiState,
+    onBuyPro: () -> Unit,
+    onRestorePurchase: () -> Unit,
     selection: SplitSelection,
     appsLoaded: Boolean,
     onPickTop: () -> Unit,
@@ -136,6 +174,7 @@ fun MainContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        ProCard(state = proState, onBuy = onBuyPro, onRestore = onRestorePurchase)
         AppSelectionCard(
             title = stringResource(R.string.selection_top_title),
             app = selection.top,

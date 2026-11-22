@@ -29,6 +29,7 @@ class ProStatusSyncerTest {
     ) : BillingGateway {
         val acknowledged = mutableListOf<String>()
         override suspend fun queryOneTimePurchases() = result
+        override suspend fun queryProProduct(productId: String): ProProduct? = null
         override suspend fun acknowledge(token: String): Boolean {
             acknowledged += token
             return ackSucceeds
@@ -51,6 +52,16 @@ class ProStatusSyncerTest {
         val storage = FakeStorage(initial = false)
         sync(FakeGateway(PurchaseQueryResult.Success(listOf(purchase()))), storage)
         assertTrue(storage.state.value)
+    }
+
+    @Test
+    fun syncReturnsGoogleVerdictForRestore() {
+        val owned = FakeGateway(PurchaseQueryResult.Success(listOf(purchase())))
+        val none = FakeGateway(PurchaseQueryResult.Success(emptyList()))
+        val failure = FakeGateway(PurchaseQueryResult.Failure)
+        assertEquals(true, sync(owned, FakeStorage(initial = false)))
+        assertEquals(false, sync(none, FakeStorage(initial = true)))
+        assertEquals(null, sync(failure, FakeStorage(initial = true)))
     }
 
     @Test
@@ -114,6 +125,7 @@ class ProStatusSyncerTest {
                 return PurchaseQueryResult.Success(emptyList())
             }
             override suspend fun acknowledge(token: String) = true
+            override suspend fun queryProProduct(productId: String): ProProduct? = null
         }
         val syncer = ProStatusSyncer(gateway, storage, productId)
         val first = launch { syncer.sync() }
