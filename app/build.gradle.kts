@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.android.billing.ktx)
     implementation(libs.androidx.recyclerview)
     implementation(libs.google.material)
     testImplementation(libs.junit)
@@ -69,4 +70,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+// MergedManifestPermissionsTest reads the debug manifest merger report.
+tasks.matching { it.name.startsWith("test") && it.name.endsWith("UnitTest") }.configureEach {
+    dependsOn("processDebugMainManifest")
 }
